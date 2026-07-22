@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  simulador-can:
+    build: .
+    image: test-vhal-automotive:latest
+    container_name: simulador_vhal_automotive
+    environment:
+      - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
+    network_mode: "host" # Mantiene la compatibilidad si decides usar redes nativas

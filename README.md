@@ -1,43 +1,56 @@
-# Automotive IVI & SiL Testing Sandbox (Android Automotive OS 15)
+# Automotive Testing - CAN Bus Simulator to Android VHAL Bridge
 
-Este repositorio contiene un laboratorio portátil de **Software-in-the-Loop (SiL)** diseñado para la automatización de pruebas en sistemas de Infoentretenimiento (IVI) basados en **Android Automotive OS (AAOS 15)**, simulación de señales de la capa de vehículo (VHAL) y emulación de tramas cíclicas de red CAN mediante Python y Docker.
+Este repositorio contiene un entorno de pruebas automatizado para ingeniería de software automotriz. Consiste en un simulador de **Bus CAN virtual** empaquetado en un contenedor aislado de **Docker**, el cual intercepta y traduce señales del vehículo para inyectarlas en tiempo real en la capa **VHAL (Vehicle Hardware Abstraction Layer)** de un emulador de **Android Automotive OS (AAOS)** mediante un puente de depuración **ADB**.
 
-## 🛠️ Tecnologías y Estándares Utilizados
-*   **Target OS:** Android Automotive OS (AAOS 15 - Vanilla Architecture)
-*   **Automation Harness:** Python 3.11 (Subprocess, Object Serialization, Python-CAN)
-*   **Virtualización y Portabilidad:** Docker Desktop & Windows Subsystem for Linux (WSL 2)
-*   **Protocolos Automotrices:** VHAL Integration, Inyección de Estados de Seguridad (Interlocks), Simulación CAN Bus Cíclica (100ms)
-*   **Estándares de Calidad de Software:** Diseño de pruebas alineado a metodologías **ASPICE (SWE.6 / SYS.5)** e **ISO 26262** (Análisis de Fallas Funcionales de Cabina)
+La prueba simula el control de confort de la cabina, manipulando de forma interactiva el sistema de climatización (**HVAC**) y las unidades de medida reflejadas en la pantalla de infoentretenimiento del vehículo.
 
-## 📂 Estructura del Proyecto
-*   `test_vhal.py`: Script avanzado de automatización que gestiona la máquina de estados del coche (Ignición ON -> Cinturón ON -> Freno de mano OFF -> Pedal de Freno ON -> Cambio a DRIVE -> Aceleración). Incorpora mecánicas de **Error Handling** y análisis dinámico de estampas de tiempo (`ElapsedRealtimeNanos`) del Car Service de Android.
-*   `simulador_can.py`: Réplica de transmisión cíclica de bus de datos (Frecuencia: 100ms) emulando tramas crudas equivalentes a bases de datos de red automotriz (`.dbc` / CANDB) mediante la abstracción de canales virtuales de SocketCAN en memoria.
-*   `Dockerfile`: Entorno contenerizado y agnóstico que empaqueta las dependencias del sistema operativo (ADB client, Python core y librerías de testing) asegurando la reproducibilidad en servidores de Integración Continua (CI/CD).
+## 🛠️ Tecnologías y Herramientas
+* **Lenguaje:** Python 3.11 (Librería `python-can` para buses virtuales en memoria).
+* **Virtualización:** Docker & Docker Compose (Entornos aislados y reproducibles).
+* **Automotive:** Android Automotive OS (AAOS) Emulation (API Landscape).
+* **Protocolos y Puentes:** Socket/Virtual CAN, ADB (Android Debug Bridge), Win32 Host Bridge.
 
-## 🚀 Instrucciones de Ejecución (Setup Remoto)
+## 📐 Arquitectura del Flujo de Datos
+## 🚀 Guía de Instalación y Ejecución
 
-### Requisitos Previos
-*   Docker Desktop (Configurado con WSL 2)
-*   Android Studio con la imagen de sistema `Automotive (1024p landscape)` para Android 15 cargada y en ejecución.
+### 1. Prerrequisitos
+* Tener instalado [Docker Desktop](https://docker.com) en Windows.
+* Tener instalado [Android Studio](https://android.com) con un emulador de **Android Automotive OS** configurado en formato **Landscape (1024p)**.
 
-### Paso 1: Configurar el puente de red ADB en el Host
-Para permitir que el contenedor aislado de Docker interactúe con el coche virtual, inicie el servidor de ADB en modo global en una terminal de Windows:
-```bash
-adb kill-server
+### 2. Preparación del Emulador (Android Studio)
+Para evitar bloqueos por actividades por defecto en servicios automotrices de segundo plano, configura el entorno de ejecución:
+1. Ve a **Edit Configurations...** (junto al botón verde de Run).
+2. En **Launch Options**, cambia el parámetro *Launch* de *Default Activity* a **Nothing**.
+3. Haz un **Cold Boot** desde el *Device Manager* para inicializar la pantalla del auto limpiamente.
+
+### 3. Configuración del Puente ADB en Windows
+Android Studio levanta un servidor local automático. Para permitir que el contenedor Docker aislado se comunique con él, libera y abre el puerto desde PowerShell:
+```powershell
+# Forzar el cierre de procesos fantasma
+Stop-Process -Name "adb" -Force
+
+# Levantar el servidor ADB con el puente de escucha abierto para Docker
 adb -a nodaemon server start
 ```
+*Nota: Deja esta terminal abierta. El servidor se quedará en modo de escucha.*
 
-### Paso 2: Compilar el entorno contenerizado
-Genere la imagen portátil ejecutando la receta del Dockerfile:
-```bash
-docker build -t test-vhal-automotive .
+### 4. Construcción y Despliegue con Docker Compose
+Abre una segunda terminal en la raíz del proyecto y arranca la simulación con un solo comando:
+```powershell
+docker compose up --build
 ```
 
-### Paso 3: Disparar las Pruebas Automatizadas
-Ejecute el contenedor redirigiendo los sockets de comunicación al servidor global del Host:
-```bash
-docker run --rm -e ADB_SERVER_SOCKET=tcp:host.docker.internal:5037 test-vhal-automotive
-```
+---
 
-## 📊 Casos de Prueba Automatizados y Lógica de Diseño (ASPICE)
-Los scripts ejecutan validaciones funcionales complejas de **Driver Distraction (DD)** y **UX Restrictions (UXR)**. El algoritmo comprueba de manera determinista que el Infoentretenimiento inhabilita o degrada componentes de la interfaz gráfica (como teclados o búsquedas web) solo cuando la combinación lógica de sensores cumple con los criterios de riesgo vial definidos por la norma de seguridad funcional.
+## 📊 Propiedades del VHAL Utilizadas en la Prueba
+El script traduce IDs de tramas CAN estándar a las siguientes constantes del ecosistema Android Automotive:
+* **`HVAC_POWER_ON`** (`ID: 287312384`): Envía señal de encendido al climatizador de la cabina.
+* **`HVAC_TEMPERATURE_SET`** (`ID: 289411585`): Modifica gradualmente los floats de temperatura (`18.0°C` a `26.0°C`) reflejándose visualmente en el infoentretenimiento.
+* **`DISTANCE_DISPLAY_UNITS`** (`ID: 289408514`): Alterna el sistema métrico del vehículo entre Kilómetros (`2`) e Imperial/Millas (`3`).
+
+---
+
+## 📝 Resultados del Caso de Prueba
+Al ejecutar el contenedor, se valida la comunicación bidireccional exitosa. El sistema responde actualizando dinámicamente la interfaz gráfica (UI) del auto:
+* La barra de climatización inferior responde segundo a segundo a los incrementos de temperatura enviados desde Docker.
+* La consola confirma la correcta inyección mediante código de retorno limpio, libre de fallos de red tipo `Errno 19` gracias a la migración a buses virtuales controlados.
