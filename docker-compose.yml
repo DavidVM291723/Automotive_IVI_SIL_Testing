@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   simulador-can:
     build: .
@@ -8,9 +6,4 @@ services:
     environment:
       - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
     network_mode: "host"
-    # Cambia el comando para ejecutar las pruebas de telemática
-    command: python -m unittest 05_Telematics_Calls/test_calls.py
-
-
-
-
+    command: python -m unittest 10_Vehicle_Network_Internet/test_network.py

@@ -59,8 +59,17 @@ Al ejecutar el contenedor, se valida la comunicación bidireccional exitosa. El 
 
 El repositorio está organizado de forma modular, permitiendo validar de manera independiente los diferentes dominios del vehículo mediante `docker-compose`:
 
-1. **`01_Cabin_Comfort_HVAC`**: Simulación de tramas CAN para el control climático y confort térmico. Altera gradualmente la temperatura de la cabina y conmuta unidades métricas/imperiales visibles en la pantalla táctil central.
-2. **`02_Driver_Distraction`**: Validación de políticas de seguridad vial mediante restricciones de experiencia de usuario (UX Restrictions - UXR). Bloquea interfaces complejas del infoentretenimiento de forma automática cuando el auto detecta velocidad de desplazamiento.
-3. **`03_Vehicle_Status_Safety`**: Gestión de riesgos vehiculares. Monitorea y mitiga conflictos mecánicos críticos, tales como intentos de marcha activa en directa (`Drive`) manteniendo acoplado el Freno de Mano electrónico (`PARKING_BRAKE_ON`).
-4. **`04_Infotainment_Media`**: Interceptación de mandos multimedia al volante. Controla remotamente la API de audio mediante señales CAN virtuales para emular saltos de pistas de música y escalamiento de volumen del amplificador.
-5. **`05_Telematics_Calls`**: Pruebas de conectividad y redes celulares. Inyecta tramas telemáticas simulando llamadas entrantes para validar la prioridad de interrupción del HMI y el despliegue del marcador telefónico (`dialer`).
+## 📂 Estructura de la Colección de Casos de Prueba (Test Suites)
+
+El repositorio está organizado de forma modular, permitiendo validar de manera independiente los diferentes dominios críticos del vehículo mediante `docker-compose`:
+
+1. **`01_Cabin_Comfort_HVAC`**: Simulación de tramas CAN para el control climático. Modifica gradualmente la temperatura de la cabina y conmuta unidades métricas/imperiales visibles en el infoentretenimiento.
+2. **`02_Driver_Distraction`**: Validación de políticas de seguridad vial mediante restricciones de experiencia de usuario (UX Restrictions - UXR). Bloquea interfaces complejas automáticamente cuando el auto detecta velocidad.
+3. **`03_Vehicle_Status_Safety`**: Mitigación de riesgos viales. Monitorea conflictos mecánicos críticos, como intentos de marcha activa en directa (`Drive`) manteniendo acoplado el Freno de Mano electrónico (`PARKING_BRAKE_ON`).
+4. **`04_Infotainment_Media`**: Interceptación de mandos multimedia al volante. Controla la API de audio mediante señales CAN virtuales para emular saltos de pistas de música y escalamiento del volumen.
+5. **`05_Telematics_Calls`**: Pruebas de conectividad móvil. Inyecta tramas telemáticas simulando llamadas entrantes para validar la prioridad de interrupción del HMI y el despliegue automático del marcador telefónico (`dialer`).
+6. **`06_Engine_Diagnostics_DTC`**: Simulación de fallos del motor y códigos de diagnóstico de abordo (OBD2/UDS). Transmite tramas de códigos de error (DTC) inyectando eventos maliciosos controlados en el tren motriz del VHAL.
+7. **`07_Vehicle_Location_GPS`**: Inyección de telemetría de geolocalización satelital. Simula el tránsito de una ruta automotriz en tiempo real actualizando dinámicamente el subsistema de localización de mapas.
+8. **`08_Emergency_eCall`**: Validación del protocolo de seguridad pasiva eCall (Llamada Automática SOS). Emula el despliegue de bolsas de aire interrumpiendo inmediatamente el sistema para priorizar el marcado de emergencia.
+9. **`09_Voice_Assistant_Intent`**: Integración con servicios conectados de voz. Intercepta la pulsación física del botón de comandos del volante mediante tramas CAN para invocar la interfaz de captura de Google Assistant.
+10. **`10_Vehicle_Network_Internet`**: Resiliencia y conmutación de red celular (TCU Módem). Simula la pérdida y restablecimiento de datos de internet (ej. tránsito por un túnel) validando el comportamiento de la pila de red del vehículo.
