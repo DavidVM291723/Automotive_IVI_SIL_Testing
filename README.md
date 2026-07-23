@@ -54,3 +54,13 @@ El script traduce IDs de tramas CAN estándar a las siguientes constantes del ec
 Al ejecutar el contenedor, se valida la comunicación bidireccional exitosa. El sistema responde actualizando dinámicamente la interfaz gráfica (UI) del auto:
 * La barra de climatización inferior responde segundo a segundo a los incrementos de temperatura enviados desde Docker.
 * La consola confirma la correcta inyección mediante código de retorno limpio, libre de fallos de red tipo `Errno 19` gracias a la migración a buses virtuales controlados.
+
+## 📂 Estructura de la Colección de Casos de Prueba (Test Suites)
+
+El repositorio está organizado de forma modular, permitiendo validar de manera independiente los diferentes dominios del vehículo mediante `docker-compose`:
+
+1. **`01_Cabin_Comfort_HVAC`**: Simulación de tramas CAN para el control climático y confort térmico. Altera gradualmente la temperatura de la cabina y conmuta unidades métricas/imperiales visibles en la pantalla táctil central.
+2. **`02_Driver_Distraction`**: Validación de políticas de seguridad vial mediante restricciones de experiencia de usuario (UX Restrictions - UXR). Bloquea interfaces complejas del infoentretenimiento de forma automática cuando el auto detecta velocidad de desplazamiento.
+3. **`03_Vehicle_Status_Safety`**: Gestión de riesgos vehiculares. Monitorea y mitiga conflictos mecánicos críticos, tales como intentos de marcha activa en directa (`Drive`) manteniendo acoplado el Freno de Mano electrónico (`PARKING_BRAKE_ON`).
+4. **`04_Infotainment_Media`**: Interceptación de mandos multimedia al volante. Controla remotamente la API de audio mediante señales CAN virtuales para emular saltos de pistas de música y escalamiento de volumen del amplificador.
+5. **`05_Telematics_Calls`**: Pruebas de conectividad y redes celulares. Inyecta tramas telemáticas simulando llamadas entrantes para validar la prioridad de interrupción del HMI y el despliegue del marcador telefónico (`dialer`).

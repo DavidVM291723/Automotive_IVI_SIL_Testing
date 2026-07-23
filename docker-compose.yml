@@ -7,4 +7,10 @@ services:
     container_name: simulador_vhal_automotive
     environment:
       - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
-    network_mode: "host" # Mantiene la compatibilidad si decides usar redes nativas
+    network_mode: "host"
+    # Cambia el comando para ejecutar las pruebas de telemática
+    command: python -m unittest 05_Telematics_Calls/test_calls.py
+
+
+
+
