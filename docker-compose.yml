@@ -6,5 +6,5 @@ services:
     environment:
       - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
     network_mode: "host"
-    command: python -m unittest 01_Cabin_Comfort_HVAC/test_hvac.py
+    command: python -m unittest 10_Vehicle_Network_Internet/test_network.py
 
