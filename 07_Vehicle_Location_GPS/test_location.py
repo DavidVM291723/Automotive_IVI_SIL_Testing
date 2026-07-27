@@ -5,28 +5,24 @@ import unittest
 class TestVehicleLocation(unittest.TestCase):
 
     def setUp(self):
-        print("\n[SETUP] Inicializando entorno de localización. Despertando GPS...")
-        # Forzamos una ubicación limpia de origen
+        print("\n[SETUP] Initializing location environment. Waking up GPS hardware...")
         subprocess.run("adb shell cmd location set-location-properties gps --location 19.432608,-99.133208,10.0,1.0", shell=True, stdout=subprocess.DEVNULL)
         time.sleep(1)
 
     def test_gps_provider_response(self):
-        print("[TEST] Desplegando simulador CAN para inyección de ruta geográfica...")
-        
-        # Ejecutar el estímulo del simulador CAN
+        print("[TEST] Launching CAN simulator for geographic route injection...")
         subprocess.run("python ./07_Vehicle_Location_GPS/simulador_can.py", shell=True)
         time.sleep(1)
         
-        print("[VALIDACIÓN] Verificando los registros del LocationManager de Android...")
+        print("[VALIDATION] Inspecting Android LocationManager records...")
+        command_verify = "adb shell dumpsys location"
+        dump = subprocess.check_output(command_verify, shell=True, text=True)
         
-        comando_verificar = "adb shell dumpsys location"
-        dump = subprocess.check_output(comando_verificar, shell=True, text=True)
-        
-        self.assertIn("location", dump.lower(), "ERROR: El servicio de localización no está activo en el emulador.")
-        print("[PASSED] Prueba de localización exitosa: El proveedor GPS respondió correctamente a la telemetría.")
+        self.assertIn("location", dump.lower(), "ERROR: Location subsystem is inactive on the emulator.")
+        print("[PASSED] Location test successful: GPS provider correctly responded to stream telemetry.")
 
     def tearDown(self):
-        print("[TEARDOWN] Finalizando monitoreo GPS...")
+        print("[TEARDOWN] Finalizing GPS monitoring telemetry stream...")
         pass
 
 if __name__ == "__main__":

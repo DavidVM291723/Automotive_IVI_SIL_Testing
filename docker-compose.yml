@@ -1,9 +1,10 @@
 services:
-  simulador-can:
+  can-simulator:
     build: .
     image: test-vhal-automotive:latest
-    container_name: simulador_vhal_automotive
+    container_name: automotive_vhal_simulator
     environment:
       - ADB_SERVER_SOCKET=tcp:host.docker.internal:5037
     network_mode: "host"
-    command: python -m unittest 10_Vehicle_Network_Internet/test_network.py
+    command: python -m unittest 01_Cabin_Comfort_HVAC/test_hvac.py
+

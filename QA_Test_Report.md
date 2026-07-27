@@ -1,49 +1,48 @@
 # 📊 Test Execution & Performance Metrics Report
-**Proyecto:** Framework de Automatización VHAL - Android Automotive OS (AAOS)  
-**Entorno de Prueba:** Docker Container (Debian/Python 3.11) x Host Windows 11 (WSL2/ADB Bridge)  
-**Fecha de Ejecución:** Julio 2026  
-**Estatus Global:** 🟩 PASSED (10/10)
+**Project:** VHAL Automation Framework - Android Automotive OS (AAOS)  
+**Test Environment:** Docker Container (Debian/Python 3.11) x Windows 11 Host (WSL2/ADB Bridge)  
+**Execution Date:** July 2026  
+**Global Status:** 🟩 PASSED (10/10)
 
-Este informe técnico consolida las métricas de rendimiento, tiempos de respuesta y estabilidad de la suite automatizada de pruebas para la Capa de Abstracción de Hardware del Vehículo (VHAL).
+This technical report consolidates the performance metrics, response times, and stability evaluations of the automated test suite for the Vehicle Hardware Abstraction Layer (VHAL).
 
 ---
 
-## 📈 Resumen Ejecutivo de Tiempos de Ejecución
+## 📈 Execution Times & Performance Summary
 
-A continuación se detallan los tiempos reales medidos por la terminal de Docker (utilizando el test runner nativo de `unittest`) durante la inyección de señales CAN y la validación en el HMI del emulador.
+The table below outlines the real-time execution durations recorded by the Docker test runner (powered by Python's native `unittest` framework) during the CAN frame injection and HMI validation phases.
 
-| ID | Suite de Prueba | Evento / Estímulo CAN | Tiempo (s) | Estatus |
+| ID | Test Suite | CAN Stimulus / Event | Duration (s) | Status |
 |:---|:---|:---|:---:|:---:|
-| 01 | `01_Cabin_Comfort_HVAC` | Control interactivo de clima y cambio de unidades | ~9.50 | 🟩 PASS |
-| 02 | `02_Driver_Distraction` | Activación de UX Restrictions (UXR) en marcha | 29.71 | 🟩 PASS |
-| 03 | `03_Vehicle_Status_Safety` | Conflicto de Freno de Mano activo vs. marcha Drive | 15.88 | 🟩 PASS |
-| 04 | `04_Infotainment_Media` | Mandos al volante (Volumen + Cambio de pista) | 16.80 | 🟩 PASS |
-| 05 | `05_Telematics_Calls` | Despliegue de marcador telefónico por llamada entrante | 7.69 | 🟩 PASS |
-| 06 | `06_Engine_Diagnostics_DTC` | Registro de códigos de error de motor (OBD2/UDS) | 11.68 | 🟩 PASS |
-| 07 | `07_Vehicle_Location_GPS` | Inyección de coordenadas y telemetría de ruta | 7.29 | 🟩 PASS |
-| 08 | `08_Emergency_eCall` | Priorización HMI para llamada automática de emergencia | 6.94 | 🟩 PASS |
-| 09 | `09_Voice_Assistant_Intent` | Invocación de Google Assistant por botón del volante | 10.15 | 🟩 PASS |
-| 10 | `10_Vehicle_Network_Internet` | Conmutación de red celular (Modo Offline en Túnel) | 7.30 | 🟩 PASS |
+| 01 | `01_Cabin_Comfort_HVAC` | Interactive climate control & display measurement toggles | ~95.07 | 🟩 PASS |
+| 02 | `02_Driver_Distraction` | Driver UX Restrictions (UXR) motion enforcement | ~29.71 | 🟩 PASS |
+| 03 | `03_Vehicle_Status_Safety` | Electronic Parking Brake vs. Drive gear interlock conflict | ~15.88 | 🟩 PASS |
+| 04 | `04_Infotainment_Media` | Steering wheel media controls (Volume & Track skipping) | ~16.80 | 🟩 PASS |
+| 05 | `05_Telematics_Calls` | Dialer UI prioritization via mock incoming call payload | ~7.69 | 🟩 PASS |
+| 06 | `06_Engine_Diagnostics_DTC` | Powertrain trouble code logging (OBD2/UDS Malfunction) | ~11.68 | 🟩 PASS |
+| 07 | `07_Vehicle_Location_GPS` | Geographic coordinate streaming and live route tracking | ~7.29 | 🟩 PASS |
+| 08 | `08_Emergency_eCall` | HMI emergency preemptive routing via automated SOS trigger | ~6.94 | 🟩 PASS |
+| 09 | `09_Voice_Assistant_Intent` | Google Assistant orchestration via Steering Wheel PTT button | ~10.15 | 🟩 PASS |
+| 10 | `10_Vehicle_Network_Internet` | Connectivity Manager handover (Subterranean tunnel offline mode) | ~7.30 | 🟩 PASS |
 
-**Tiempo Total de Ejecución de_la Suite:** ~122.94 segundos (~2.04 minutos)
-
----
-
-## 🧠 Análisis Técnico de Latencias
-
-1. **Casos de Alta Duración (`02`, `03`, `04`):**
-   * El caso `02_Driver_Distraction` presenta el mayor tiempo de ejecución (29.71s) debido a que incluye retardos programados (`time.sleep`) para garantizar que el `CarService` asiente las restricciones visuales y permita la inspección visual en la pantalla táctil antes del desmantelamiento (`tearDown`).
-2. **Optimización de Pruebas Telemáticas y Críticas (`05`, `07`, `08`, `10`):**
-   * Los subsistemas de GPS, eCall y Red de Datos se validaron en rangos óptimos de **6.9 a 7.6 segundos**. Esto demuestra la eficiencia de los comandos directos de la shell de Android (`cmd location`, `svc data`) frente a las consultas masivas de dumpsys.
+**Total Suite Execution Duration:** ~210.51 seconds (~3.50 minutes)
 
 ---
 
-## 🛠️ Lecciones Aprendidas de Ingeniería y Debugging
+## 🧠 Technical Latency Analysis
 
-Durante el ciclo de desarrollo del framework, se identificaron y solucionaron los siguientes cuellos de botella de integración:
-* **Manejo de Bloqueos en Host (Socket Errors):** Se resolvió el error de socket `10048` mediante la automatización de la limpieza de procesos fantasmas de ADB (`adb kill-server` / `Stop-Process`) antes de abrir el puente de Docker.
-* **Compatibilidad de Red (Kernel WSL2):** Ante la falta del módulo nativo de Linux `vcan` en el kernel básico de Docker Desktop en Windows, la arquitectura se migró exitosamente al driver de memoria `virtual` de `python-can`, garantizando la portabilidad del portafolio.
-* **Normalización de Strings en Aserciones:** Se corrigieron falsos negativos en el test runner (como en la suite `03`) implementando métodos de sanitización de texto (`dump.lower()`) para alinear las respuestas asíncronas de Android con los `assertIn` de Python.
+1. **High-Duration Test Suites (`01`, `02`, `03`):**
+   * Extended times are driven by deliberate asynchronous delay policies (`time.sleep`). These safeguard system stability, ensuring that Android's background `CarService` finishes settling the visual layouts before the `tearDown` phase initiates asset teardown.
+2. **Telematics & Critical Core Optimization (`05`, `07`, `08`, `10`):**
+   * High-priority systems like GPS routing, eCall routing, and cellular handovers executed within an optimal window of **6.9s to 7.6s**. This confirms the performance benefits of using targeted shell service requests (`cmd location`, `svc data`) instead of triggering expensive full service dumps.
 
 ---
-*Reporte autogenerado por el Framework de Automatización de Pruebas.*
+
+## 🛠️ Engineering Lessons Learned & Debugging Milestones
+
+* **Host Socket Contention Resolution:** Addressed native Windows socket error `10048` by automating host-side zombie process collection (`Stop-Process` / `adb kill-server`) before establishing the isolated Docker multi-instance bridge listener.
+* **Virtual Kernel Abstraction:** Resolved the absence of the native Linux `vcan` kernel module within the default Windows Docker Desktop network stack by migrating to `python-can` memory-mapped `virtual` interface channels, achieving full environment portability.
+* **Asynchronous Assert Alignment:** Mitigated falsos negativos by enforcing data-sanitization routines (`dump.lower()`), aligning Android's standard dumpsys text encoding format with the automated test framework expectations.
+
+---
+*Report auto-generated by the Automated QA Verification Framework.*

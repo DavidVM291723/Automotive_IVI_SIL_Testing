@@ -2,30 +2,29 @@ import subprocess
 import time
 import can
 
-def conmutar_datos_vehiculo(estado):
-    """Controla el estado del módem de datos interno del auto"""
-    comando = f"adb shell svc data {estado}"
+def toggle_vehicle_data(state):
+    """Controls the cellular telemetry modem data state inside the TCU"""
+    command = f"adb shell svc data {state}"
     try:
-        subprocess.run(comando, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception as e:
-        print(f"[ERROR ADB] {e}")
+        print(f"[ADB ERROR] {e}")
 
-# Inicializar bus virtual
 bus = can.interface.Bus(channel='vcan0', interface='virtual')
 
 print("==================================================")
-print("SIMULADOR CAN: CONECTIVIDAD DE RED DE A BORDO")
+print("CAN SIMULATOR: ON-BOARD NETWORK CONNECTIVITY")
 print("==================================================")
 
 try:
-    print("[ESCENARIO 1] Vehículo ingresa a zona sin cobertura (Túnel)...")
-    print(" -> Tx CAN: 0x450 | TCU Módem: SIGNAL_LOST (0x00)")
-    conmutar_datos_vehiculo("disable")
-    time.sleep(3.0) # Tiempo en modo offline
+    print("[SCENARIO 1] Vehicle entering no-coverage area (Tunnel)...")
+    print(" -> Tx CAN: 0x450 | TCU Modem State: SIGNAL_LOST (0x00)")
+    toggle_vehicle_data("disable")
+    time.sleep(3.0)
     
-    print("\n[ESCENARIO 2] Vehículo sale del túnel y recupera red LTE/5G...")
-    print(" -> Tx CAN: 0x450 | TCU Módem: SIGNAL_RESTORED (0x01)")
-    conmutar_datos_vehiculo("enable")
+    print("\n[SCENARIO 2] Vehicle exits tunnel. Restoring LTE/5G bandwidth...")
+    print(" -> Tx CAN: 0x450 | TCU Modem State: SIGNAL_RESTORED (0x01)")
+    toggle_vehicle_data("enable")
     time.sleep(1.5)
 
 finally:

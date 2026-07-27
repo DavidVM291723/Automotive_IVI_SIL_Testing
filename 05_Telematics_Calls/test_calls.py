@@ -5,31 +5,24 @@ import unittest
 class TestVehicleTelematics(unittest.TestCase):
 
     def setUp(self):
-        print("\n[SETUP] Inicializando entorno de telemática. Volviendo a pantalla de inicio...")
-        # Regresamos al Home de Android para asegurar un inicio limpio
+        print("\n[SETUP] Initializing telematics environment. Returning to Home screen...")
         subprocess.run("adb shell input keyevent 3", shell=True, stdout=subprocess.DEVNULL)
         time.sleep(1)
 
     def test_incoming_call_interface(self):
-        print("[TEST] Desplegando simulador CAN para llamada entrante...")
-        
-        # Ejecutar el estímulo del simulador CAN
+        print("[TEST] Launching CAN simulator for incoming call event...")
         subprocess.run("python ./05_Telematics_Calls/simulador_can.py", shell=True)
         time.sleep(1)
         
-        print("[VALIDACIÓN] Verificando actividad en pantalla (HMI) de Android Automotive...")
+        print("[VALIDATION] Checking foreground activity on Android Automotive HMI...")
+        command_verify = "adb shell dumpsys activity activities"
+        dump = subprocess.check_output(command_verify, shell=True, text=True)
         
-        # Consultamos qué aplicación está al frente en la interfaz gráfica
-        comando_verificar = "adb shell dumpsys activity activities"
-        dump = subprocess.check_output(comando_verificar, shell=True, text=True)
-        
-        # Validamos que la aplicación de contactos/teléfono (dialer) esté en los registros de actividades activos
-        self.assertTrue("dialer" in dump.lower() or "car" in dump.lower(), "ERROR: La interfaz de llamada no se desplegó en pantalla.")
-        print("[PASSED] Prueba de telemática exitosa: La interfaz de llamada interrumpió el infoentretenimiento correctamente.")
+        self.assertTrue("dialer" in dump.lower() or "car" in dump.lower(), "ERROR: Dialer interface failed to deploy on screen.")
+        print("[PASSED] Telematics test successful: Incoming call screen successfully prioritized over HMI.")
 
     def tearDown(self):
-        print("[TEARDOWN] Cerrando aplicación de teléfono y liberando pantalla...")
-        # Regresamos al Home al finalizar la prueba para dejar el sistema limpio
+        print("[TEARDOWN] Dismissing dialer activity and clearing screen...")
         subprocess.run("adb shell input keyevent 3", shell=True, stdout=subprocess.DEVNULL)
 
 if __name__ == "__main__":
