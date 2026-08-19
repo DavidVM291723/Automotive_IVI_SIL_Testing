@@ -2,3 +2,5 @@ pytest
 python-can
 cantools
 
+python-can==4.2.2
+behave==1.2.6
