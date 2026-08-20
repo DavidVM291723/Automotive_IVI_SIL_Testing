@@ -34,8 +34,8 @@ jobs:
         shell: powershell
         run: |
           Write-Host "[CI] Cleaning stale environments and orchestrating container layers..."
-          # Force the removal of any existing container or orphan with the same project name
-          docker compose down --images local --volumes --remove-orphans
+          # Standard and highly compatible down sequence to clear conflict parameters
+          docker compose down --volumes --remove-orphans
           
           $Content = Get-Content docker-compose.yml
           $NewContent = $Content | ForEach-Object {
@@ -47,7 +47,7 @@ jobs:
         shell: powershell
         run: |
           Write-Host "[CI] Launching Behave BDD regression engine with anti-conflict policies..."
-          # Enforce force-recreate to eliminate any daemon name collision anomalies
+          # Force-recreate guarantees clean deployments over the daemon sockets
           docker compose up --build --force-recreate --exit-code-from can-simulator
 
       - name: Step 5 - Environment Teardown & Reset
