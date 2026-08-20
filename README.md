@@ -4,6 +4,11 @@ This repository hosts an enterprise-grade automated testing framework tailored f
 
 The framework validates critical automotive systems, ranging from cabin climate constraints to complex telematics handovers and road safety safety policies.
 
+# 🚘 Automotive Testing - Containerized CAN Bus Simulator to Android VHAL Bridge
+
+[![Automotive VHAL SIL Regression Pipeline](https://github.com/DavidVM291723/Automotive_IVI_SIL_Testing)](https://github.com/DavidVM291723/Automotive_IVI_SIL_Testing)
+[![QA Methodology](https://shields.io_|_BDD-blue)](https://github.com/DavidVM291723/Automotive_IVI_SIL_Testing)
+
 ## 🛠️ Tech Stack & Ecosystem
 * **Core Runtime:** Python 3.11 (`python-can` abstract virtual memory-mapped architecture).
 * **Virtualization:** Docker & Docker Compose (Hermetic, reproducible infrastructure).

@@ -3,18 +3,15 @@
 # ==============================================================================
 name: Automotive VHAL SIL Regression Pipeline
 
-# 1. THE TRIGGER: Wake up the assistant on every push to the main branch
 on:
   push:
     branches: [ "main" ]
 
-# 2. THE ENVIRONMENT: Run this job strictly inside David's Windows runner
 jobs:
   automotive_regression:
     name: Run Full Verification Suite
     runs-on: [self-hosted, Windows, automotive-env]
 
-    # 3. THE STEPS: Sequential automated assembly line instructions
     steps:
       - name: Step 1 - Fetch Latest Code Changes
         uses: actions/checkout@v4
@@ -23,7 +20,15 @@ jobs:
         shell: powershell
         run: |
           Write-Host "[CI] Auditing host Android Debug Bridge pipeline..."
-          adb devices
+          
+          # Resolve absolute path for ADB within the system service boundaries
+          $AdbPath = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+          if (Test-Path $AdbPath) {
+              & $AdbPath devices
+          } else {
+              Write-Host "[WARNING] ADB not found in default user path, trying global fallback..."
+              adb devices
+          }
 
       - name: Step 3 - Purge and Rebuild Isolated Docker Container
         shell: powershell
@@ -31,7 +36,6 @@ jobs:
           Write-Host "[CI] Cleaning stale environments and orchestrating container layers..."
           docker compose down --remove-orphans
           
-          # Dynamically set compose command to execute the whole BDD suite
           $Content = Get-Content docker-compose.yml
           $NewContent = $Content | ForEach-Object {
               if ($_ -match "command:") { "    command: behave" } else { $_ }
@@ -50,4 +54,10 @@ jobs:
         run: |
           Write-Host "[CI] Tearing down runtime instances and clearing dashboard overlays..."
           docker compose down
-          adb shell input keyevent 3
+          
+          $AdbPath = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+          if (Test-Path $AdbPath) {
+              & $AdbPath shell input keyevent 3
+          } else {
+              adb shell input keyevent 3
+          }
