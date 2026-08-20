@@ -21,7 +21,6 @@ jobs:
         run: |
           Write-Host "[CI] Auditing host Android Debug Bridge pipeline..."
           
-          # Universal public path bypassing user-profile access restrictions
           $AdbPath = "C:\adb-public\adb.exe"
           if (Test-Path $AdbPath) {
               Write-Host "[CI] ADB found at public path. Querying active devices..."
@@ -35,7 +34,8 @@ jobs:
         shell: powershell
         run: |
           Write-Host "[CI] Cleaning stale environments and orchestrating container layers..."
-          docker compose down --remove-orphans
+          # Force the removal of any existing container or orphan with the same project name
+          docker compose down --images local --volumes --remove-orphans
           
           $Content = Get-Content docker-compose.yml
           $NewContent = $Content | ForEach-Object {
@@ -46,15 +46,16 @@ jobs:
       - name: Step 4 - Execute Advanced BDD Gherkin Testing Automation
         shell: powershell
         run: |
-          Write-Host "[CI] Launching Behave BDD regression engine..."
-          docker compose up --build --exit-code-from can-simulator
+          Write-Host "[CI] Launching Behave BDD regression engine with anti-conflict policies..."
+          # Enforce force-recreate to eliminate any daemon name collision anomalies
+          docker compose up --build --force-recreate --exit-code-from can-simulator
 
       - name: Step 5 - Environment Teardown & Reset
         shell: powershell
         if: always()
         run: |
           Write-Host "[CI] Tearing down runtime instances and clearing dashboard overlays..."
-          docker compose down
+          docker compose down --volumes
           
           $AdbPath = "C:\adb-public\adb.exe"
           if (Test-Path $AdbPath) {
