@@ -21,13 +21,14 @@ jobs:
         run: |
           Write-Host "[CI] Auditing host Android Debug Bridge pipeline..."
           
-          # Resolve absolute path for ADB within the system service boundaries
-          $AdbPath = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+          # Hardcoded absolute path to David's actual Android SDK installation
+          $AdbPath = "C:\Users\david\AppData\Local\Android\Sdk\platform-tools\adb.exe"
           if (Test-Path $AdbPath) {
+              Write-Host "[CI] ADB found at target path. Querying active devices..."
               & $AdbPath devices
           } else {
-              Write-Host "[WARNING] ADB not found in default user path, trying global fallback..."
-              adb devices
+              Write-Host "[CRITICAL] ADB executable not found at: $AdbPath"
+              exit 1
           }
 
       - name: Step 3 - Purge and Rebuild Isolated Docker Container
@@ -55,9 +56,7 @@ jobs:
           Write-Host "[CI] Tearing down runtime instances and clearing dashboard overlays..."
           docker compose down
           
-          $AdbPath = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+          $AdbPath = "C:\Users\david\AppData\Local\Android\Sdk\platform-tools\adb.exe"
           if (Test-Path $AdbPath) {
               & $AdbPath shell input keyevent 3
-          } else {
-              adb shell input keyevent 3
           }
