@@ -21,10 +21,10 @@ jobs:
         run: |
           Write-Host "[CI] Auditing host Android Debug Bridge pipeline..."
           
-          # Hardcoded absolute path to David's actual Android SDK installation
-          $AdbPath = "C:\Users\david\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+          # Universal public path bypassing user-profile access restrictions
+          $AdbPath = "C:\adb-public\adb.exe"
           if (Test-Path $AdbPath) {
-              Write-Host "[CI] ADB found at target path. Querying active devices..."
+              Write-Host "[CI] ADB found at public path. Querying active devices..."
               & $AdbPath devices
           } else {
               Write-Host "[CRITICAL] ADB executable not found at: $AdbPath"
@@ -56,7 +56,7 @@ jobs:
           Write-Host "[CI] Tearing down runtime instances and clearing dashboard overlays..."
           docker compose down
           
-          $AdbPath = "C:\Users\david\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+          $AdbPath = "C:\adb-public\adb.exe"
           if (Test-Path $AdbPath) {
               & $AdbPath shell input keyevent 3
           }
