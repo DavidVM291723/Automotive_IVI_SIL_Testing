@@ -35,8 +35,13 @@ jobs:
         run: |
           Write-Host "[CI] Cleaning stale environments and orchestrating container layers..."
           
-          # Absolute fail-safe: Forcefully terminate and remove any container with our target name
-          docker rm -f automotive_vhal_simulator 2>$null
+          # Try/Catch block absorbs native daemon errors to prevent strict pipeline crashes
+          try {
+              docker rm -f automotive_vhal_simulator
+          } catch {
+              Write-Host "[CI] Container was not found or already purged. Proceeding..."
+          }
+          
           docker compose down --volumes --remove-orphans
           
           $Content = Get-Content docker-compose.yml
