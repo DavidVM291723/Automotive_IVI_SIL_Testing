@@ -34,7 +34,9 @@ jobs:
         shell: powershell
         run: |
           Write-Host "[CI] Cleaning stale environments and orchestrating container layers..."
-          # Standard and highly compatible down sequence to clear conflict parameters
+          
+          # Absolute fail-safe: Forcefully terminate and remove any container with our target name
+          docker rm -f automotive_vhal_simulator 2>$null
           docker compose down --volumes --remove-orphans
           
           $Content = Get-Content docker-compose.yml
@@ -47,7 +49,6 @@ jobs:
         shell: powershell
         run: |
           Write-Host "[CI] Launching Behave BDD regression engine with anti-conflict policies..."
-          # Force-recreate guarantees clean deployments over the daemon sockets
           docker compose up --build --force-recreate --exit-code-from can-simulator
 
       - name: Step 5 - Environment Teardown & Reset
